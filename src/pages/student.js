@@ -12,6 +12,11 @@ import { CustomersSearch } from 'src/sections/customer/customers-search';
 import { applyPagination } from 'src/utils/apply-pagination';
 import { DataGrid } from '@mui/x-data-grid';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import Autocomplete from '@mui/material/Autocomplete';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+
+import Checkbox from '@mui/material/Checkbox';
 
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
@@ -19,14 +24,21 @@ import {  useMoralis } from 'react-moralis';
 import { Magic } from "magic-sdk"
 import { OAuthExtension } from '@magic-ext/oauth';
 import {
-  
-  TextField,
+    TextField,
 } from '@mui/material';
 
 const now = new Date();
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
 const Page = () => {
   
+const top100Films = [
+  { title: 'Ingles', valuesLenguage: 'Ingles' },
+  { title: 'Italiano', valuesLenguage: 'Italiano' },
+  { title: 'Español', valuesLenguage: 'Español' },
+  { title: 'Aleman', valuesLenguage: 'Aleman' }, 
+];
   var [courses,setCourses]=useState([])
   var [levels,setLevels]=useState([{
     label:"1",
@@ -71,11 +83,9 @@ const {Moralis}=useMoralis()
 
 const columnsCourse = [
   { field: 'id', headerName: 'id', width: 70 },
-  { field: 'studentName', headerName: 'Name', width: 200 },
+  { field: 'studentName', headerName: 'studentName', width: 200 },
   { field: 'studentEmail', headerName: 'studentEmail', width: 200 },
-  { field: 'course', headerName: 'course', width: 100 },
 
-  { field: 'level', headerName: 'Level', width: 100 },
 ];
   const fetchData = async () =>{
 
@@ -88,27 +98,18 @@ const columnsCourse = [
     const userMetadata = await magic.user.getMetadata();
   
 
-    const query2 = new Moralis.Query("Courses");
-      const query = new Moralis.Query("Students");
-     await query.equalTo("teacher",userMetadata.email)
-    await  query2.equalTo("teacher",userMetadata.email)
+    const query = new Moralis.Query("Students");
+    await  query.equalTo("supportEmail",userMetadata.email)
 
       const object = await query.find();
-      const object2 = await query2.find();
-      let cursos=[]
+   console.log("studiantes "+object)
 
-      for(let i=0;i<object2.length;i++){
-        cursos=[...cursos,{id:object2[i].attributes._id,label:object2[i].attributes.course,value:object2[i].attributes.course}]
-
-      }
-      setCourses([...cursos])
+    
     let studiantes=[]
       for(let i=0;i<object.length;i++){
         
         studiantes=[...studiantes,{
           id:object[i].attributes.uid,
-          course:object[i].attributes.course,
-          level:object[i].attributes.level,
           studentEmail:object[i].attributes.studentEmail,
           studentName:object[i].attributes.studentName,
     
@@ -126,68 +127,164 @@ const columnsCourse = [
   
   }
   
-  
+  const [dateBirthday, setDateBirtday] = useState(null);
+
 async function handleStudent(){
-  const Student=Moralis.Object.extend("Students")
-  const student=new Student()
+  const Student= Moralis.Object.extend("Students")
+  const student= new Student()
   const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
     extensions: [new OAuthExtension()],
   });
   const query = new Moralis.Query("Students");
   const count = await query.find();
-console.log(values.course)
-console.log(values.level)
-
-  if(values.studentEmail!==""){
+  try {
+    if(values.studentEmail!==""){
     query.equalTo("studentEmail",values.studentEmail)
     if(await query.first()){
       return 
     }
     const userMetadata = await magic.user.getMetadata();
-
-    student.set("teacher",userMetadata.email)   
-    if(values.course!==""){
-
-      student.set("course",values.course)    
     
-    }    else{
+
+    if(userMetadata){
+
+      student.set("supportEmail",userMetadata.email)   
+    
+    } else{
       return
     }
-    if(values.level!==""){
+    console.log("studentName ",values.studentName)
 
-      student.set("level",values.level)          
+    if(values.studentName!==""){
+
+      student.set("studentName",values.studentName)    
+    
+    } else{
+      return
+    }
+    console.log("studentLastname ",values.studentLastname)
+
+    if(values.studentLastname!==""){
+
+      student.set("studentLastname",values.studentLastname)          
     
     }  else{
       return
     }
-if(values.studentName!==""){
+   
+    console.log("studentID ",values.studentID)
+
+if(values.studentID!==""){
   
-    student.set("studentName",values.studentName)
+    student.set("studentID",values.studentID)
     
 }else{
   return
 }
+console.log(valuesLenguage)
 
-if(values.studentEmail!==""){
-  student.set("studentEmail",values.studentEmail)
+console.log("valuesLenguage ",valuesLenguage)
 
+if(valuesLenguage){
+  student.set("teacherLenguage",valuesLenguage)
+
+  
+}else{
+  return
+}
+
+console.log("teacherGender ",values.studentGender)
+
+if(values.studentGender){
+  student.set("teacherGender",values.studentGender)
+
+  
+}else{
+  return
+}
+console.log("studentPhone ",values.studentPhone)
+
+
+if(values.studentPhone){
+  student.set("studentPhone",values.studentPhone)
+
+} else {
+  return
+}
+console.log("studentAlergies ",values.studentAlergies)
+
+
+if(values.studentAlergies){
+  student.set("studentAlergies",values.studentAlergies)
+
+  
+}else{
+  return
+}
+
+console.log("dateBirthday ",dateBirthday)
+
+if(dateBirthday){
+  student.set("teacherBirthday",dateBirthday.toString())
+ 
+}else{
+  return
+}
+console.log("studentComments ",values.studentComments)
+
+if(values.studentComments){
+  student.set("studentComments",values.studentComments)
+ 
+}else{
+  return
+}
+console.log("studentDegree ",values.studentDegree)
+
+if(values.studentDegree){
+  student.set("studentDegree",values.studentDegree)
+ 
+}else{
+  return
+}
+console.log("studentCity ",values.studentCity)
+
+if(values.studentCity){
+  student.set("studentCity",values.studentCity)
+ 
+}else{
+  return
+}
+console.log("studentState ",values.studentState)
+
+if(values.studentState){
+  student.set("studentState",values.studentState)
+ 
+} else{
+  student.set("studentState","Inactivo")
+}
+console.log("studentInstitute ",values.studentInstitute)
+if(values.studentInstitute){
+  student.set("studentInstitute",values.studentInstitute)
+ 
 }else{
   return
 }
 
     student.set("uid",(count.length+1))
+    console.log(" entro")
     await student.save()
+    console.log(" entro2")
 
     setRowsStudents([...rowsStudents,{
       id:count.length+1,
-      course:values.course,
-      level:values.level,
       studentName:values.studentName,
-      studentEmail:values.studentEmail,
-   
+      studentEmail:values.studentEmail,      
+      teacherState:values.teacherState,
+      
      }])
 
-
+  }}catch(e){
+    console.log("error",e.message)
   }
 
 }
@@ -211,7 +308,9 @@ const genders = [
     value: 'Female',
     label: 'female'
   },
-];
+];{
+  
+}
 const lenguages = [
   {
     value: 'ingles',
@@ -231,6 +330,7 @@ const lenguages = [
   }
 ];
 var [rowsStudents,setRowsStudents]=useState([])
+const [valuesLenguage, setValueLenguage] = useState("Ingles")
 
 const [date, setDate] = useState(null);
 
@@ -242,16 +342,15 @@ const [date, setDate] = useState(null);
     studentEmail: '', 
     studentLastname: '', 
     course: '',
+    studentGender:"",
     level: '',
-    cedula: '',
-    nacimiento: '',
-    lenguages: '',
-    alergias: '',
+    studentID: '',
+    studentAlergies: '',
     procedencia: '',
-    state:"",
-    comentarios: '',
-    telefono: '',
-    nivelAcademico: '',
+    studentState:"",
+    studentComments: '',
+    studentPhone: '',
+    studentDegree: '',
 
 
   });
@@ -314,7 +413,7 @@ const [date, setDate] = useState(null);
               <TextField
                   fullWidth
                   label="Student Lastname"
-                  name="studentLasname"
+                  name="studentLastname"
                   onChange={handleChange}
                   required
                   style={{
@@ -327,7 +426,7 @@ const [date, setDate] = useState(null);
 <TextField
                   fullWidth
                   label="Select Gender"
-                  name="Genero"
+                  name="studentGender"
                   onChange={handleChange}
                   required
                   select
@@ -337,7 +436,7 @@ const [date, setDate] = useState(null);
                     marginBottom:10
                   }}
                   SelectProps={{ native: true }}
-                  value={values.gender}
+                  value={values.studentGender}
                 >
                   {genders.map((option) => (
                     <option
@@ -351,21 +450,33 @@ const [date, setDate] = useState(null);
               <TextField
                   fullWidth
                   label="Student Cedula"
-                  name="cedula"
+                  name="studentID"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.cedula}
+                  value={values.studentID}
+                />
+                 <TextField
+                  fullWidth
+                  label="Student City"
+                  name="studentCity"
+                  onChange={handleChange}
+                  required
+                  style={{
+                    marginTop:10,
+                    marginBottom:10
+                  }}
+                  value={values.studentCity}
                 />
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
 
 <DateTimePicker
 label="Fecha de Nacimiento"
-value={date}
-onChange={(newValue) => setDate(newValue)}
+value={dateBirthday}
+onChange={(newValue) => setDateBirtday(newValue)}
 />    </LocalizationProvider>
                   <TextField
                   fullWidth
@@ -382,94 +493,106 @@ onChange={(newValue) => setDate(newValue)}
                  <TextField
                 fullWidth
                 label="Student Phone"
-                name="telefono"
+                name="studentPhone"
                 onChange={handleChange}
                 required
                 style={{
                   marginTop:10,
                   marginBottom:10
                 }}
-                value={values.telefono}
+                value={values.studentPhone}
               />
                  <TextField
                 fullWidth
                 label="Alergias"
-                name="alergias"
+                name="studentAlergies"
                 onChange={handleChange}
                 required
                 style={{
                   marginTop:10,
                   marginBottom:10
                 }}
-                value={values.alergias}
+                value={values.studentAlergies}
               />
                <TextField
                 fullWidth
                 label="Comentarios"
-                name="comentarios"
+                name="studentComments"
                 onChange={handleChange}
                 required
                 style={{
                   marginTop:10,
                   marginBottom:10
                 }}
-                value={values.comentarios}
+                value={values.studentComments}
               /> 
               <TextField
               fullWidth
               label="Nivel Academico"
-              name="nivelAcademico"
+              name="studentDegree"
               onChange={handleChange}
               required
               style={{
                 marginTop:10,
                 marginBottom:10
               }}
-              value={values.nivelAcademico}
+              value={values.studentDegree}
             />  
               <TextField
             fullWidth
-            label="Procedencia"
-            name="procedencia"
+            label="Instituto"
+            name="studentInstitute"
             onChange={handleChange}
             required
             style={{
               marginTop:10,
               marginBottom:10
             }}
-            value={values.nivelAcademico}
+            value={values.studentInstitute}
           />
 
-<TextField
-                  fullWidth
-                  label="Select Lenguages"
-                  name="Lenguages"
-                  onChange={handleChange}
-                  required
-                  select
-                  
-                  style={{
-                    paddingTop:6,
-                    marginBottom:10
-                  }}
-                  SelectProps={{ native: true }}
-                  value={values.lenguage}
-                >
-                  {lenguages.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
+<Autocomplete
+      multiple
 
+      id="checkboxes-tags-demo"
+
+      options={top100Films}
+      
+      name="valuesLenguage"
+
+
+      onChange={(event, newValue) => {
+        console.log(newValue)
+        setValueLenguage(newValue);
+      }}
+
+      disableCloseOnSelect
+
+      getOptionLabel={(option) => option.title}
+      renderOption={(props, option, { selected }) => (
+        <li {...props}>
+          <Checkbox
+            icon={icon}
+            checkedIcon={checkedIcon}
+            style={{ marginRight: 8 }}
+            checked={selected}
+          />
+          {option.title}
+        </li>
+      )}
+
+      style={{ width: 500 }}
+
+      renderInput={(params) => (
+        <TextField {...params} label="Teacher Lenguages" placeholder="Idiomas" />
+      )}
+
+    />    
                      
-<TextField
+          <TextField
                   fullWidth
                   label="Select State"
-                  name="Estado"
+                  name="studentState"
                   onChange={handleChange}
                   required
                   select
@@ -479,7 +602,7 @@ onChange={(newValue) => setDate(newValue)}
                     marginBottom:10
                   }}
                   SelectProps={{ native: true }}
-                  value={values.state}
+                  value={values.studentState}
                 >
                   {estado.map((option) => (
                     <option

@@ -19,27 +19,35 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import {  useMoralis } from 'react-moralis';
 import { Magic } from "magic-sdk"
 import { OAuthExtension } from '@magic-ext/oauth';
-import {
-  
+import {  
   TextField,
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
 
+import Checkbox from '@mui/material/Checkbox';
+const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+const checkedIcon = <CheckBoxIcon fontSize="small" />;
 const now = new Date();
-
+const top100Films = [
+  { title: 'Ingles', valuesLenguage: 'Ingles' },
+  { title: 'Italiano', valuesLenguage: 'Italiano' },
+  { title: 'Español', valuesLenguage: 'Español' },
+  { title: 'Aleman', valuesLenguage: 'Aleman' }, 
+];
 const Page = () => {
-  
   var [courses,setCourses]=useState([])
+  var [count,setCount]=useState([])
 
   var [rowsCourse,setRowsCourse]=useState([])
 const {Moralis}=useMoralis()
 
 const columnsCourse = [
   { field: 'id', headerName: 'id', width: 70 },
-  { field: 'studentName', headerName: 'Name', width: 200 },
-  { field: 'studentEmail', headerName: 'studentEmail', width: 200 },
-  { field: 'course', headerName: 'course', width: 100 },
+  { field: 'teacherName', headerName: 'teacherName', width: 200 },
+  { field: 'teacherEmail', headerName: 'teacherEmail', width: 200 },
 
-  { field: 'level', headerName: 'Level', width: 100 },
 ];
 
 const columnsDate = [
@@ -47,54 +55,42 @@ const columnsDate = [
   { field: 'date', headerName: 'date', width: 500 },
  
 ];
-var [rowsDate,setRowsDate]=useState([]) 
-function handleDate(){  
-  console.log(date.$d)
 
+var [dateDisponibilidad,setDateDisponibilidad]=useState(null) 
+
+var [rowsDate,setRowsDate]=useState([])
+ var [countDisponibilidad,setCountDisponibilidad]=useState(0) 
+
+function handleDateDisponibilidad(){  
   setRowsDate([...rowsDate,{
-   id:count,
-   date:date.$d,
+   id:countDisponibilidad,
+   date:new Date(dateDisponibilidad.$d).toISOString(),
   }])
-  setCount(count+1)
+  setCountDisponibilidad(countDisponibilidad+1)
 }
   const fetchData = async () =>{
 
     try{
       
-  let rows2=[]
   const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
     extensions: [new OAuthExtension()],
   });  
     const userMetadata = await magic.user.getMetadata();
   
 
-    const query2 = new Moralis.Query("Courses");
-      const query = new Moralis.Query("Students");
-     await query.equalTo("teacher",userMetadata.email)
-    await  query2.equalTo("teacher",userMetadata.email)
+    const query2 = new Moralis.Query("Teachers");
+    await  query2.equalTo("supportEmail",userMetadata.email)
 
-      const object = await query.find();
-      const object2 = await query2.find();
-      let cursos=[]
-
-      for(let i=0;i<object2.length;i++){
-        cursos=[...cursos,{id:object2[i].attributes._id,label:object2[i].attributes.course,value:object2[i].attributes.course}]
-
-      }
-      setCourses([...cursos])
+      const object = await query2.find();
+    console.log("object "+object)
     let studiantes=[]
       for(let i=0;i<object.length;i++){
         
-        studiantes=[...studiantes,{
+          studiantes=[...studiantes,{
           id:object[i].attributes.uid,
-          course:object[i].attributes.course,
-          level:object[i].attributes.level,
-          studentEmail:object[i].attributes.studentEmail,
-          studentName:object[i].attributes.studentName,
-    
-         }]
-       
-          
+          teacherName:object[i].attributes.teacherName,
+          teacherEmail:object[i].attributes.teacherEmail,      
+           }]
       }
       setRowsStudents([...studiantes])
 
@@ -107,67 +103,213 @@ function handleDate(){
   }
   
   
-async function handleStudent(){
-  const Student=Moralis.Object.extend("Students")
-  const student=new Student()
+async function handleTeacher(){
+  const Student= Moralis.Object.extend("Teachers")
+  const student= new Student()
   const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
     extensions: [new OAuthExtension()],
   });
-  const query = new Moralis.Query("Students");
+  const query = new Moralis.Query("Teachers");
   const count = await query.find();
-console.log(values.course)
-console.log(values.level)
-
-  if(values.studentEmail!==""){
-    query.equalTo("studentEmail",values.studentEmail)
+  try {
+    if(values.teacherEmail!==""){
+    query.equalTo("teacherEmail",values.teacherEmail)
     if(await query.first()){
       return 
     }
     const userMetadata = await magic.user.getMetadata();
-
-    student.set("teacher",userMetadata.email)   
-    if(values.course!==""){
-
-      student.set("course",values.course)    
     
-    }    else{
+
+    if(userMetadata){
+
+      student.set("supportEmail",userMetadata.email)   
+    
+    } else{
       return
     }
-    if(values.level!==""){
 
-      student.set("level",values.level)          
+    if(values.teacherName!==""){
+
+      student.set("teacherName",values.teacherName)    
+    
+    } else{
+      return
+    }
+
+    if(values.teacherLastname!==""){
+
+      student.set("teacherLastname",values.teacherLastname)          
     
     }  else{
       return
     }
-if(values.studentName!==""){
+
+if(values.teacherRif!==""){
   
-    student.set("studentName",values.studentName)
+    student.set("teacherRif",values.teacherRif)
     
 }else{
   return
 }
 
-if(values.studentEmail!==""){
-  student.set("studentEmail",values.studentEmail)
 
+if(valuesLenguage){
+  student.set("teacherLenguage",valuesLenguage)
+
+  
 }else{
   return
 }
 
+if(values.teacherID){
+  student.set("teacherID",values.teacherID)
+
+  
+}else{
+  return
+}
+
+if(values.teacherCity){
+  student.set("teacherCity",values.teacherCity)
+
+  
+}else{
+  return
+}
+
+
+if(values.teacherDegree){
+  student.set("teacherDegree",values.teacherDegree)
+
+} else {
+  return
+}
+
+
+if(values.teacherInstitute){
+  student.set("teacherInstitute",values.teacherInstitute)
+
+  
+}else{
+  return
+}
+
+
+if(dateBirthday){
+  student.set("teacherBirthday",dateBirthday.toString())
+ 
+}else{
+  return
+}
+
+if(values.teacherPhone){
+  student.set("teacherPhone",values.teacherPhone)
+ 
+}else{
+  return
+}
+
+if(values.teacherAlergias){
+  student.set("teacherAlergias",values.teacherAlergias)
+ 
+}else{
+  return
+}
+
+if(values.teacherEmail){
+  student.set("teacherEmail",values.teacherEmail)
+ 
+}else{
+  return
+}
+if(values.teacherComments){
+  student.set("teacherComments",values.teacherComments)
+ 
+}else{
+  return
+}
+
+if(values.teacherQualificationMOA){
+  student.set("teacherQualificationMOA",values.teacherQualificationMOA)
+ 
+}else{
+  return
+}
+
+if(valuesLenguage){
+  student.set("teacherLenguages",valuesLenguage)
+ 
+}else{
+  return
+}
+
+
+if(rowsDate.length>1){
+  let dates2=[]
+  for(let i=0;i<rowsDate.length;rowsDate++){
+    dates2=[...dates2,rowsDate[i].date.toString()]
+  }
+
+  student.set("teacherAvaliableTimes",dates2)
+ 
+}else{
+  return
+}
+
+if(dateContractStart){
+  student.set("teacherContractStart",dateContractStart.toString())
+ 
+}else{
+  return
+}
+
+if(dateContractEnd){
+  student.set("teacherContractEnd",dateContractEnd.toString())
+ 
+}else{
+  return
+}
+
+if(values.teacherGender){
+  student.set("teacherGender",values.teacherGender)
+ 
+}else{
+  return
+}
+
+if(values.teacherState){
+  student.set("teacherState",values.teacherState)
+ 
+} else{
+  student.set("teacherState","Inactivo")
+}
     student.set("uid",(count.length+1))
+    console.log(" entro")
     await student.save()
+    console.log(" entro2")
 
     setRowsStudents([...rowsStudents,{
       id:count.length+1,
-      course:values.course,
-      level:values.level,
-      studentName:values.studentName,
-      studentEmail:values.studentEmail,
-   
+      teacherName:values.teacherName,
+      teacherAlergias:values.teacherAlergias,
+      teacherBirthday:dateBirthday,
+      teacherCity:values.teacherCity,
+      teacherComments:values.teacherComments,
+      teacherInstitute:values.teacherInstitute,
+      teacherID:values.teacherID,
+      teacherEmail:values.teacherEmail,      
+      teacherGender:values.teacherGender,  
+      teacherDegree:values.teacherDegree,
+      teacherLenguages:valuesLenguage,
+      teacherQualificationMOA:values.teacherQualificationMOA,
+      teacherPhone:values.teacherPhone,
+      teacherRif:values.teacherRif,
+      teacherState:values.teacherState,
+      teacherAvaliableTime:dateDisponibilidad
+
      }])
-
-
+  }}catch(e){
+    console.log("error",e.message)
   }
 
 }
@@ -194,23 +336,30 @@ const genders = [
 ];
 const lenguages = [
   {
-    value: 'ingles',
-    label: 'ingles'
+    value: 'Ingles',
+    label: 'Ingles'
   },
   {
-    value: 'italiano',
-    label: 'italiano'
+    value: 'Italiano',
+    label: 'Italiano'
   },
   {
-    value: 'aleman',
-    label: 'aleman'
+    value: 'Aleman',
+    label: 'Aleman'
   },
   {
-    value: 'español',
-    label: 'español'
+    value: 'Español',
+    label: 'Español'
+  },
+  {
+    value: 'Frances',
+    label: 'Frances'
   }
 ];
 var [rowsStudents,setRowsStudents]=useState([])
+const [dateBirthday, setDateBirtday] = useState(null);
+const [dateContractStart, setContractStart] = useState(null);
+const [dateContractEnd, setContractEnd] = useState(null);
 
 const [date, setDate] = useState(null);
 const [date2, setDate2] = useState(null);
@@ -219,32 +368,38 @@ const [date3, setDate3] = useState(null);
   useEffect(()=>{
     fetchData()
 },[]);
+
+const [valuesLenguage, setValueLenguage] = useState("Ingles")
+
   const [values, setValues] = useState({
     teacherName: '',
     teacherEmail: '', 
-    
     teacherLastname: '', 
-    course: '',
-    level: '',
+    courseName: '',
+    courseLevel: '',
     rif: '',
     instituto:"",
-    cedula: '',
+    teacherID: '',
+    teacherGender:"",
     titulo: '',
     nacimiento: '',
-    lenguages: '',
-    alergias: '',
-    procedencia: '',
-    ciudad:"",
-    state:"",
-    comentarios: '',
-    telefono: '',
-    nivelAcademico: '',
-
-
+    teacherLenguages: [],
+    teacherAlergias: '',
+    teacherInstitute: '',
+    teacherCity:"",
+    teacherContractEnd:"",
+    teacherQualificationMOA:"",
+    teacherContractStart:"",
+    teacherBirthday:"",
+    teacherState:"",
+    teacherComments: '',
+    teacherPhone: '',
+    teacherDegree: '',
   });
 
   const handleChange = useCallback(
     (event) => {
+      console.log(event.target.name)
       setValues((prevState) => ({
         ...prevState,
         [event.target.name]: event.target.value
@@ -257,7 +412,7 @@ const [date3, setDate3] = useState(null);
     <>
       <Head>
         <title>
-          My Students
+          Teachers
         </title>
       </Head>
       <Box
@@ -301,7 +456,7 @@ const [date3, setDate3] = useState(null);
               <TextField
                   fullWidth
                   label="Teacher Lastname"
-                  name="teacherLasname"
+                  name="teacherLastname"
                   onChange={handleChange}
                   required
                   style={{
@@ -314,7 +469,7 @@ const [date3, setDate3] = useState(null);
 <TextField
                   fullWidth
                   label="Select Gender"
-                  name="Genero"
+                  name="teacherGender"
                   onChange={handleChange}
                   required
                   select
@@ -324,7 +479,7 @@ const [date3, setDate3] = useState(null);
                     marginBottom:10
                   }}
                   SelectProps={{ native: true }}
-                  value={values.gender}
+                  value={values.teacherGender}
                 >
                   {genders.map((option) => (
                     <option
@@ -339,70 +494,70 @@ const [date3, setDate3] = useState(null);
               <TextField
                   fullWidth
                   label="Rif"
-                  name="rif"
+                  name="teacherRif"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.rif}
+                  value={values.teacherRif}
                 />
               <TextField
                   fullWidth
                   label="Teacher ID"
-                  name="cedula"
+                  name="teacherID"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.cedula}
+                  value={values.teacherID}
                 />
                  <TextField
                   fullWidth
                   label="Ciudad de Origen"
-                  name="ciudad de origen"
+                  name="teacherCity"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.ciudad}
+                  value={values.teacherCity}
                 />
                 
                 <TextField
                   fullWidth
                   label="Titulo"
-                  name="titulo"
+                  name="teacherDegree"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.titulo}
+                  value={values.teacherDegree}
                 />
                   <TextField
                   fullWidth
                   label="Instituto donde se graduo"
-                  name="Instituto"
+                  name="teacherInstitute"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.instituto}
+                  value={values.teacherInstitute}
                 />
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
 
 <DateTimePicker
 label="Fecha de Nacimiento"
 value={date}
-onChange={(newValue) => setDate(newValue)}
+onChange={(newValue) => setDateBirtday(newValue)}
 />    </LocalizationProvider>
 
                   <TextField
@@ -420,81 +575,131 @@ onChange={(newValue) => setDate(newValue)}
                  <TextField
                 fullWidth
                 label="Teacher Phone"
-                name="telefono"
+                name="teacherPhone"
                 onChange={handleChange}
                 required
                 style={{
                   marginTop:10,
                   marginBottom:10
                 }}
-                value={values.telefono}
+                value={values.teacherPhone}
               />
                  <TextField
                 fullWidth
                 label="Alergias"
-                name="alergias"
+                name="teacherAlergias"
                 onChange={handleChange}
                 required
                 style={{
                   marginTop:10,
                   marginBottom:10
                 }}
-                value={values.alergias}
+                value={values.teacherAlergias}
               />
                <TextField
                 fullWidth
                 label="Comentarios"
-                name="comentarios"
+                name="teacherComments"
                 onChange={handleChange}
                 required
                 style={{
                   marginTop:10,
                   marginBottom:10
                 }}
-                value={values.comentarios}
+                value={values.teacherComments}
               /> 
-             
-<TextField
-                  fullWidth
-                  label="Select Lenguages"
-                  name="Lenguages"
-                  onChange={handleChange}
-                  required
-                  select
-                  
-                  style={{
-                    paddingTop:6,
-                    marginBottom:10
-                  }}
-                  SelectProps={{ native: true }}
-                  value={values.lenguage}
-                >
-                  {lenguages.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
+               <TextField
+                fullWidth
+                label="Calificacion perfil MOA"
+                name="teacherQualificationMOA"
+                onChange={handleChange}
+                required
+                style={{
+                  marginTop:10,
+                  marginBottom:10
+                }}
+                value={values.teacherQualificationMOA}
+              /> 
+              <Autocomplete
+      multiple
+
+      id="checkboxes-tags-demo"
+
+      options={top100Films}
+      
+      name="valuesLenguage"
+
+
+      onChange={(event, newValue) => {
+        console.log(newValue)
+        setValueLenguage(newValue);
+      }}
+
+      disableCloseOnSelect
+
+      getOptionLabel={(option) => option.title}
+      renderOption={(props, option, { selected }) => (
+        <li {...props}>
+          <Checkbox
+            icon={icon}
+            checkedIcon={checkedIcon}
+            style={{ marginRight: 8 }}
+            checked={selected}
+          />
+          {option.title}
+        </li>
+      )}
+
+      style={{ width: 500 }}
+
+      renderInput={(params) => (
+        <TextField {...params} label="Teacher Lenguages" placeholder="Idiomas" />
+      )}
+
+    />      
+    <TextField
+                      fullWidth
+                      label="Select State"
+                      name="teacherState"
+                      onChange={handleChange}
+                      required
+                      select
+                      
+                      style={{
+                        paddingTop:6,
+                        marginBottom:10
+                      }}
+                      SelectProps={{ native: true }}
+                      value={values.teacherState}
                     >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
+                      {estado.map((option) => (
+                        <option
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </TextField>
+
+
                 <Grid container  style={{direction:"row",width:"100%",marginTop:10,marginBottom:10}}>
                
                <Grid container  style={{direction:"row",width:"30%",marginTop:10,marginBottom:10}}>
           
          <Typography variant="h6">
                Disponibilidad
-       
-             </Typography>
+           </Typography>
                <Box style={{marginTop:10,marginBottom:10}} >
 
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
 
                     <DateTimePicker
- label="Disponibilidad Horaria"
- value={date}
- onChange={(newValue) => setDate(newValue)}
-/>    </LocalizationProvider>
+                      label="Disponibilidad Horaria"
+                      value={dateDisponibilidad}
+                      onChange={(newValue) => setDateDisponibilidad(newValue)}
+                      />  
+                    </LocalizationProvider>
    
    
 </Box>
@@ -505,7 +710,7 @@ onChange={(newValue) => setDate(newValue)}
                      <PlusIcon />
                    </SvgIcon>
                  )}
-                 onClick={handleDate}
+                 onClick={handleDateDisponibilidad}
                  variant="contained"
                >
                  Add Date
@@ -524,51 +729,27 @@ onChange={(newValue) => setDate(newValue)}
                  
 </Grid>
          
-                     
-<TextField
-                  fullWidth
-                  label="Select State"
-                  name="Estado"
-                  onChange={handleChange}
-                  required
-                  select
-                  
-                  style={{
-                    paddingTop:6,
-                    marginBottom:10
-                  }}
-                  SelectProps={{ native: true }}
-                  value={values.state}
-                >
-                  {estado.map((option) => (
-                    <option
-                      key={option.value}
-                      value={option.value}
-                    >
-                      {option.label}
-                    </option>
-                  ))}
-                </TextField>
+               
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
 
 <DateTimePicker
 label="Fecha de Contratacion"
-value={date}
-onChange={(newValue) => setDate2(newValue)}
+value={dateContractStart}
+onChange={(newValue) => setContractStart(newValue)}
 />    </LocalizationProvider>
 
 <LocalizationProvider dateAdapter={AdapterDayjs}>
 
 <DateTimePicker
 label="Fecha de Finalizacion"
-value={date}
-onChange={(newValue) => setDate3(newValue)}
+value={dateContractEnd}
+onChange={(newValue) => setContractEnd(newValue)}
 />    </LocalizationProvider>
                
               </div>
             </Stack>
             <Button    
-                  onClick={handleStudent}
+                  onClick={handleTeacher}
                   startIcon={(
                     <SvgIcon fontSize="small">
                       <PlusIcon />

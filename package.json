@@ -15,6 +15,7 @@
     "@emotion/styled": "^11.11.0",
     "@heroicons/react": "2.0.16",
     "@magic-ext/oauth": "^9.1.0",
+    "@mui/icons-material": "^5.11.16",
     "@mui/lab": "5.0.0-alpha.120",
     "@mui/material": "^5.12.3",
     "@mui/system": "5.11.9",

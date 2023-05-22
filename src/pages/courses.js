@@ -33,32 +33,60 @@ const {Moralis}=useMoralis()
   const [count3, setCount3] = useState(0);
   const [count, setCount] = useState(0);
   const [email,setEmail]=useState("")
+  const [teachers,setTeachers]=useState([])
 
-  const fetchData = async () =>{
+  
+  const fetchDataTeachers = async () =>{
 
     try{
       
-  let rows2=[]
   const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
     extensions: [new OAuthExtension()],
   });  
     const userMetadata = await magic.user.getMetadata();
   
 
+    const query2 = new Moralis.Query("Teachers");
+    await  query2.equalTo("supportEmail",userMetadata.email)
+
+      const object = await query2.find();
+    let studiantes=[]
+      for(let i=0;i<object.length;i++){
+        
+          studiantes=[...studiantes,{label:object[i].attributes.teacherEmail,value:object[i].attributes.teacherEmail}]
+      }
+setTeachers([...studiantes])
+      
+    } 
+    catch(err){
+      console.log(err);
+    }
+  
+  }
+  const fetchData = async () =>{
+
+    try{
+      
       const query = new Moralis.Query("Courses");
-      query.equalTo("teacher",userMetadata.email)
+  const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
+    extensions: [new OAuthExtension()],
+  });  
+    const userMetadata = await magic.user.getMetadata();
+  
+
+      query.equalTo("supportEmail",userMetadata.email)
 
       const object = await query.find();
-
 console.log(JSON.stringify(object))
-let courses=[]
+       let courses=[]
       for(let i=0;i<object.length;i++){
         courses=[...courses,{
           id:object[i].attributes.uid,
-          course:object[i].attributes.course,
-          dates:object[i].attributes.dates,
-          unities:object[i].attributes.unities,
-       
+          courseName:object[i].attributes.courseName,
+          courseCity:object[i].attributes.courseCity,   
+          courseLevel:object[i].attributes.courseLevel,
+          courseLenguage:object[i].attributes.courseLenguage,
+
          }]
     
           
@@ -73,6 +101,7 @@ let courses=[]
   
   
   useEffect(()=>{
+    fetchDataTeachers()
     fetchData()
 },[]);
 
@@ -81,7 +110,7 @@ function handleDate(){
 
    setRowsDate([...rowsDate,{
     id:count,
-    date:date.$d,
+    date:date.$d.toString(),
    }])
    setCount(count+1)
 }
@@ -100,67 +129,86 @@ function handleUnity(){
 
 
 async function handleCourse(){
+
+      
+
+  if(values.courseName!==""){
   const Courses=Moralis.Object.extend("Courses")
+
   const course=new Courses()
-  const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
-    extensions: [new OAuthExtension()],
-  });
+
   const query = new Moralis.Query("Courses");
+
   const count = await query.find();
-  if(values.course!==""){
-    query.equalTo("course",values.course)
+
+    query.equalTo("course",values.courseName)
+    
     if(await query.first()){
       return 
     }
-    const userMetadata = await magic.user.getMetadata();
 
-    course.set("teacher",userMetadata.email)       
-    course.set("course",values.course)    
- 
     let dates=[]  
-      let unities=[]
+    let unities=[]
 
     for(let i=0;i<rowsDate.length;i++){
       dates=[...dates,rowsDate[i].date]
     }
+
     for(let i=0;i<rowsUnidad.length;i++){
       unities=[...dates,{
-        
-   actividad:rowsUnidad[i].actividad,
-   competencia:rowsUnidad[i].competencia,
-   unidad:rowsUnidad[i].unidad,
+      actividad:rowsUnidad[i].actividad,
+      competencia:rowsUnidad[i].competencia,
+      unidad:rowsUnidad[i].unidad,
    }]
 
     }
-    course.set("dates",[...dates])
-    course.set("unities",[...unities])
 
+    const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
+      extensions: [new OAuthExtension()],
+    });   
+    console.log("teacher "+values.teacherEmail)
+    const userMetadata = await magic.user.getMetadata();
+    course.set("courseName",values.courseName)       
+    course.set("courseCity",values.courseCity)       
+    course.set("courseLenguage",values.courseLenguage)    
+    course.set("teacherEmail",values.teacherEmail)    
+
+    course.set("courseLevel",values.courseLevel)        
+    course.set("supportEmail",userMetadata.email)       
+    course.set("courseRoom",values.courseRoom)   
+     course.set("courseDates",[...dates])
+    course.set("courseThemes",[...unities])
     course.set("uid",(count.length+1))
+
+    
     await course.save()
 
     setRowsCourse([...rowsCourse,{
       id:count.length+1,
-      course:values.course,
-      dates:rowsDate,
-      unities:rowsUnidad,
-   
+      courseName:values.courseName,
+      courseCity:values.courseCity,
+      courseLevel:values.courseLevel,
+      courseLenguage:values.courseLenguage,
      }])
 
 
   }
 
+
+
 }
+
+
   const [values, setValues] = useState({
-    lenguage:"",
-    course: '',
-    unidad: '',
+    courseName:"",
+    courseCity: '',
+    courseTeacher:"",
+    courseLenguage: '',
+    teacherEmail: '',
     actividad: '',
-    room: '',
-    level: '',
-    teacher: '',
+    courseLevel: '',
+    courseRoom: '',
     competencia: '',
-    email: '',
-    city: '',
   });
 
   const handleChange = useCallback(
@@ -174,58 +222,56 @@ async function handleCourse(){
     []
   );
 
-  const teachers = [
-  ];
   const levels = [
     {
-      value: 'kids',
-      label: 'kids'
+      value: 'Kids',
+      label: 'Kids (4 a 7 años)'
     },
     {
-      value: 'junior',
-      label: 'junior'
+      value: 'Junior',
+      label: 'Junior (8 a 12 años)'
     },
     {
-      value: 'teens',
-      label: 'teens'
+      value: 'Teens',
+      label: 'Teens (12 a 18 años)'
     },
     {
-      value: 'pro',
-      label: 'pro'
+      value: 'Pro',
+      label: 'Pro (18 años o mas)'
     },
   ];
   
   const states = [
     {
-      value: 'merida',
+      value: 'Merida',
       label: 'Merida'
     },
     {
-      value: 'sancristobal',
+      value: 'SanCristobal',
       label: 'San Cristobal'
     },
     {
-      value: 'caracas',
+      value: 'Caracas',
       label: 'Caracas'
     }
   ];
 
   const lenguages = [
     {
-      value: 'ingles',
-      label: 'ingles'
+      value: 'Ingles',
+      label: 'Ingles'
     },
     {
-      value: 'italiano',
-      label: 'italiano'
+      value: 'Italiano',
+      label: 'Italiano'
     },
     {
-      value: 'aleman',
-      label: 'aleman'
+      value: 'Aleman',
+      label: 'Aleman'
     },
     {
-      value: 'español',
-      label: 'español'
+      value: 'Español',
+      label: 'Español'
     }
   ];
 
@@ -236,7 +282,11 @@ async function handleCourse(){
   ];
   const columnsCourse = [
     { field: 'id', headerName: 'id', width: 70 },
-    { field: 'course', headerName: 'Course', width: 200 },
+    { field: 'courseName', headerName: 'courseName', width: 200 },
+
+    { field: 'courseLevel', headerName: 'courseLevel', width: 200 },
+
+    { field: 'courseLenguage', headerName: 'courseLenguage', width: 200 },
   ];
   const columnsUnidad = [
     { field: 'id', headerName: 'id', width: 70 },
@@ -276,29 +326,29 @@ async function handleCourse(){
               <TextField
                   fullWidth
                   label="Nombre del Curso"
-                  name="course"
+                  name="courseName"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.course}
+                  value={values.courseName}
                 />
                    <TextField
                   fullWidth
                   label="Select City"
-                  name="city"
+                  name="courseCity"
                   onChange={handleChange}
                   required
                   select
-                  
+                  defaultValue={"Merida"}
                   style={{
                     paddingTop:6,
                     marginBottom:10
                   }}
                   SelectProps={{ native: true }}
-                  value={values.city}
+                  value={values.courseCity}
                 >
                   {states.map((option) => (
                     <option
@@ -312,17 +362,17 @@ async function handleCourse(){
                 <TextField
                   fullWidth
                   label="Select Lenguage"
-                  name="Lenguage"
+                  name="courseLenguage"
                   onChange={handleChange}
                   required
+                  defaultValue={"Ingles"}
                   select
-                  
                   style={{
                     paddingTop:6,
                     marginBottom:10
                   }}
                   SelectProps={{ native: true }}
-                  value={values.lenguage}
+                  value={values.courseLenguage}
                 >
                   {lenguages.map((option) => (
                     <option
@@ -336,29 +386,29 @@ async function handleCourse(){
                 <TextField
                   fullWidth
                   label="Class Room"
-                  name="class Room"
+                  name="courseRoom"
                   onChange={handleChange}
                   required
                   style={{
                     marginTop:10,
                     marginBottom:10
                   }}
-                  value={values.room}
+                  value={values.courseRoom}
                 />
                   <TextField
                   fullWidth
                   label="Select Level"
-                  name="Level"
+                  name="courseLevel"
                   onChange={handleChange}
                   required
                   select
-                  
+                  defaultValue={"Kids"}
                   style={{
                     paddingTop:6,
                     marginBottom:10
                   }}
                   SelectProps={{ native: true }}
-                  value={values.level}
+                  value={values.courseLevel}
                 >
                   {levels.map((option) => (
                     <option
@@ -372,17 +422,17 @@ async function handleCourse(){
                 <TextField
                   fullWidth
                   label="Select Teacher"
-                  name="Teacher"
+                  name="teacherEmail"
                   onChange={handleChange}
                   required
                   select
-                  
+                  defaultValue={teachers[0]}
                   style={{
                     paddingTop:6,
                     marginBottom:10
                   }}
                   SelectProps={{ native: true }}
-                  value={values.teacher}
+                  value={values.teacherEmail}
                 >
                   {teachers.map((option) => (
                     <option
@@ -482,7 +532,6 @@ async function handleCourse(){
       <DataGrid
         rows={rowsCourse}
         columns={columnsCourse}
-        paginationModel={{ page: 0, pageSize: 5 }}
         
       />
     </div>
