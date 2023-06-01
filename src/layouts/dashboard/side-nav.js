@@ -25,6 +25,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { SideNavItem } from './side-nav-item';
 import {useMoralis} from "react-moralis"
+
 export const SideNav = (props) => {
   const { open, onClose } = props;
   const pathname = usePathname();

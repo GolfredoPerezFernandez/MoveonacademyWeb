@@ -23,6 +23,8 @@ import {
   
   TextField,
 } from '@mui/material';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
 
 const now = new Date();
 const Page = () => {
@@ -67,6 +69,7 @@ setTeachers([...studiantes])
 
     try{
       
+      const query2 = new Moralis.Query("Programs");
       const query = new Moralis.Query("Courses");
   const magic = new Magic('pk_live_8AC0D79F7D7C0E78', {
     extensions: [new OAuthExtension()],
@@ -77,8 +80,15 @@ setTeachers([...studiantes])
       query.equalTo("supportEmail",userMetadata.email)
 
       const object = await query.find();
-console.log(JSON.stringify(object))
+      const object2 = await query2.find();
+
        let courses=[]
+       
+      for(let i=0;i<object2.length;i++){
+      setPrograms([...programs,{label: object2[i].attributes.programName,value: object2[i].attributes.uid}])
+    
+          
+      }
       for(let i=0;i<object.length;i++){
         courses=[...courses,{
           id:object[i].attributes.uid,
@@ -172,6 +182,7 @@ async function handleCourse(){
     course.set("courseCity",values.courseCity)       
     course.set("courseLenguage",values.courseLenguage)    
     course.set("teacherEmail",values.teacherEmail)    
+    course.set("programs",programs)       
 
     course.set("courseLevel",values.courseLevel)        
     course.set("supportEmail",userMetadata.email)       
@@ -199,6 +210,9 @@ async function handleCourse(){
 }
 
 
+let fixedOptions=[]
+const [value, setValue] = useState([...fixedOptions]);
+const [programs, setPrograms] = useState([...fixedOptions]);
   const [values, setValues] = useState({
     courseName:"",
     courseCity: '',
@@ -419,6 +433,7 @@ async function handleCourse(){
                     </option>
                   ))}
                 </TextField>
+
                 <TextField
                   fullWidth
                   label="Select Teacher"
@@ -443,6 +458,7 @@ async function handleCourse(){
                     </option>
                   ))}
                 </TextField>
+
                 <Grid container  style={{direction:"row",width:"100%",marginTop:10,marginBottom:10}}>
                
                 <Grid container  style={{direction:"row",width:"30%",marginTop:10,marginBottom:10}}>
@@ -451,16 +467,19 @@ async function handleCourse(){
                 Add Dates
         
               </Typography>
+
                 <Box style={{marginTop:10,marginBottom:10}} >
 
                      <LocalizationProvider dateAdapter={AdapterDayjs}>
 
                      <DateTimePicker
-  label="Time Picker"
-  value={date}
-  onChange={(newValue) => setDate(newValue)}
-/>    </LocalizationProvider>
-    
+                        label="Time Picker"
+                        value={date}
+                        onChange={(newValue) => setDate(newValue)}
+                      />   
+
+                    </LocalizationProvider>
+                   
     
 </Box>
     <Button 
@@ -491,6 +510,32 @@ async function handleCourse(){
               </div>
               
             
+<Autocomplete
+  multiple
+  id="fixed-tags-demo"
+  value={value}
+  onChange={(event, newValue) => {
+    setValue([
+      ...fixedOptions,
+      ...newValue.filter((option) => fixedOptions.indexOf(option) === -1),
+    ]);
+  }}
+  options={programs}
+  getOptionLabel={(option) => option.label}
+  renderTags={(tagValue, getTagProps) =>
+    tagValue.map((option, index) => (
+      <Chip
+        label={option.label}
+        {...getTagProps({ index })}
+        disabled={fixedOptions.indexOf(option) !== -1}
+      />
+    ))
+  }
+  style={{ width: 500 }}
+  renderInput={(params) => (
+    <TextField {...params} label="Unities" placeholder="Unities" />
+  )}
+/>
                 <Button
                   startIcon={(
                     <SvgIcon fontSize="small">
@@ -538,8 +583,9 @@ async function handleCourse(){
           </Stack>
           
         </Container>
-      </Box>
         
+      </Box>
+     
       </Box>
     </>
   );

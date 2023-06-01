@@ -80,7 +80,18 @@ const top100Films = [
 
   var [rowsCourse,setRowsCourse]=useState([])
 const {Moralis}=useMoralis()
-
+const procedence=[
+  {
+    label:"Instagram",
+    value:"Instagram"
+  },{
+    label:"Facebook",
+    value:"Facebook"
+  },{
+    label:"Twitter",
+    value:"Twitter"
+  }
+]
 const columnsCourse = [
   { field: 'id', headerName: 'id', width: 70 },
   { field: 'studentName', headerName: 'studentName', width: 200 },
@@ -340,6 +351,7 @@ const [date, setDate] = useState(null);
   const [values, setValues] = useState({
     studentName: '',
     studentEmail: '', 
+    studentProcedence: '', 
     studentLastname: '', 
     course: '',
     studentGender:"",
@@ -588,7 +600,30 @@ onChange={(newValue) => setDateBirtday(newValue)}
       )}
 
     />    
-                     
+            <TextField
+                  fullWidth
+                  label="Procedence"
+                  name="studentProcedence"
+                  onChange={handleChange}
+                  required
+                  select
+                  
+                  style={{
+                    paddingTop:6,
+                    marginBottom:10
+                  }}
+                  SelectProps={{ native: true }}
+                  value={values.studentProcedence}
+                >
+                  {procedence.map((option) => (
+                    <option
+                      key={option.value}
+                      value={option.value}
+                    >
+                      {option.label}
+                    </option>
+                  ))}
+                </TextField>           
           <TextField
                   fullWidth
                   label="Select State"
